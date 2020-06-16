@@ -92,6 +92,7 @@ extern crate lazy_static;
 
 pub use self::color::color::{Color, ColorParseError};
 pub use self::color::named_colors::NAMED_COLORS;
+pub use self::color::named_colors::NAMED_COLORS_KEYS;
 
 mod color;
 

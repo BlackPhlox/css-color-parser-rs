@@ -179,4 +179,7 @@ lazy_static! {
         m.insert("yellowgreen", Color { r: 154, g: 205, b: 50, a: 1.0 });
         m
     };
+
+    pub static ref NAMED_COLORS_KEYS: Vec<&'static str> = {NAMED_COLORS.iter().map(|(a,b)| a.clone()).collect::<Vec<_>>()};
 }
+
