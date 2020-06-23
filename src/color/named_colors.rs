@@ -180,6 +180,6 @@ lazy_static! {
         m
     };
 
-    pub static ref NAMED_COLORS_KEYS: Vec<&'static str> = {NAMED_COLORS.iter().map(|(a,b)| a.clone()).collect::<Vec<_>>()};
+    pub static ref NAMED_COLORS_KEYS: Vec<&'static str> = {NAMED_COLORS.iter().map(|(a,_)| a.clone()).collect::<Vec<_>>()};
 }
 

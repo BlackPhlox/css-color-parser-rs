@@ -97,7 +97,7 @@ impl str::FromStr for Color {
     type Err = ColorParseError;
 
     fn from_str(s: &str) -> Result<Self, ColorParseError> {
-        use std::ascii::AsciiExt;
+        //use std::ascii::AsciiExt;
 
         let s = s.trim();
         if s.is_empty() {
@@ -112,13 +112,13 @@ impl str::FromStr for Color {
             return Ok(color);
         }
 
-        if string.starts_with("#") {
+        if string.starts_with('#') {
             let string_char_count = string.chars().count();
 
             if string_char_count == 4 {
                 let (_, value_string) = string.split_at(1);
 
-                let iv = try!(u64::from_str_radix(value_string, 16));
+                let iv = u64::from_str_radix(value_string, 16)?;
 
                 // unlike original js code, NaN is impossible ()
                 if !(iv <= 0xfff) {
@@ -134,7 +134,7 @@ impl str::FromStr for Color {
             } else if string_char_count == 7 {
                 let (_, value_string) = string.split_at(1);
 
-                let iv = try!(u64::from_str_radix(value_string, 16));
+                let iv = u64::from_str_radix(value_string, 16)?;
 
                 // (7thSigil) unlike original js code, NaN is impossible
                 if !(iv <= 0xffffff) {
@@ -152,8 +152,8 @@ impl str::FromStr for Color {
             return Err(ColorParseError);
         }
 
-        let op = try!(string.find("(").ok_or(ColorParseError));
-        let ep = try!(string.find(")").ok_or(ColorParseError));
+        let op = string.find('(').ok_or(ColorParseError)?;
+        let ep = string.find(')').ok_or(ColorParseError)?;
 
         // (7thSigil) validating format
         // ')' bracket should be at the end
@@ -177,7 +177,7 @@ impl str::FromStr for Color {
         filtered_right_string_half.remove(0);
         filtered_right_string_half.pop();
 
-        let params: Vec<&str> = filtered_right_string_half.split(",").collect();
+        let params: Vec<&str> = filtered_right_string_half.split(',').collect();
 
         // (7thSigil) validating format
         if params.len() < 3 || params.len() > 4 {
@@ -204,11 +204,11 @@ fn parse_rgba(mut rgba: Vec<&str>) -> Result<Color, ColorParseError> {
         return Err(ColorParseError);
     }
 
-    let a_str = try!(rgba.pop().ok_or(ColorParseError));
+    let a_str = rgba.pop().ok_or(ColorParseError)?;
 
-    let a = try!(parse_css_float(a_str));
+    let a = parse_css_float(a_str)?;
 
-    let mut rgb_color = try!(parse_rgb(rgba));
+    let mut rgb_color = parse_rgb(rgba)?;
 
     rgb_color = Color { a: a, ..rgb_color };
 
@@ -221,18 +221,18 @@ fn parse_rgb(mut rgb: Vec<&str>) -> Result<Color, ColorParseError> {
         return Err(ColorParseError);
     }
 
-    let b_str = try!(rgb.pop().ok_or(ColorParseError));
-    let g_str = try!(rgb.pop().ok_or(ColorParseError));
-    let r_str = try!(rgb.pop().ok_or(ColorParseError));
+    let b_str = rgb.pop().ok_or(ColorParseError)?;
+    let g_str = rgb.pop().ok_or(ColorParseError)?;
+    let r_str = rgb.pop().ok_or(ColorParseError)?;
 
-    let r = try!(parse_css_int(r_str));
-    let g = try!(parse_css_int(g_str));
-    let b = try!(parse_css_int(b_str));
+    let r = parse_css_int(r_str)?;
+    let g = parse_css_int(g_str)?;
+    let b = parse_css_int(b_str)?;
 
     return Ok(Color {
-        r: r,
-        g: g,
-        b: b,
+        r,
+        g,
+        b,
         a: 1.0,
     });
 }
@@ -243,14 +243,14 @@ fn parse_hsla(mut hsla: Vec<&str>) -> Result<Color, ColorParseError> {
         return Err(ColorParseError);
     }
 
-    let a_str = try!(hsla.pop().ok_or(ColorParseError));
+    let a_str = hsla.pop().ok_or(ColorParseError)?;
 
-    let a = try!(parse_css_float(a_str));
+    let a = parse_css_float(a_str)?;
 
     // (7thSigil) Parsed from hsl to rgb representation
-    let mut rgb_color: Color = try!(parse_hsl(hsla));
+    let mut rgb_color: Color = parse_hsl(hsla)?;
 
-    rgb_color = Color { a: a, ..rgb_color };
+    rgb_color = Color { a, ..rgb_color };
 
     return Ok(rgb_color);
 }
@@ -261,11 +261,11 @@ fn parse_hsl(mut hsl: Vec<&str>) -> Result<Color, ColorParseError> {
         return Err(ColorParseError);
     }
 
-    let l_str = try!(hsl.pop().ok_or(ColorParseError));
-    let s_str = try!(hsl.pop().ok_or(ColorParseError));
-    let h_str = try!(hsl.pop().ok_or(ColorParseError));
+    let l_str = hsl.pop().ok_or(ColorParseError)?;
+    let s_str = hsl.pop().ok_or(ColorParseError)?;
+    let h_str = hsl.pop().ok_or(ColorParseError)?;
 
-    let mut h = try!(f32::from_str(h_str));
+    let mut h = f32::from_str(h_str)?;
 
     // 0 .. 1
     h = (((h % 360.0) + 360.0) % 360.0) / 360.0;
@@ -273,8 +273,8 @@ fn parse_hsl(mut hsl: Vec<&str>) -> Result<Color, ColorParseError> {
     // NOTE(deanm): According to the CSS spec s/l should only be
     // percentages, but we don't bother and let float or percentage.
 
-    let s = try!(parse_css_float(s_str));
-    let l = try!(parse_css_float(l_str));
+    let s = parse_css_float(s_str)?;
+    let l = parse_css_float(l_str)?;
 
     let m2: f32;
 
@@ -291,9 +291,9 @@ fn parse_hsl(mut hsl: Vec<&str>) -> Result<Color, ColorParseError> {
     let b = clamp_css_byte_from_float(css_hue_to_rgb(m1, m2, h - 1.0 / 3.0) * 255.0);
 
     return Ok(Color {
-        r: r,
-        g: g,
-        b: b,
+        r,
+        g,
+        b,
         a: 1.0,
     });
 }
@@ -303,29 +303,29 @@ fn parse_css_float(fv_str: &str) -> Result<f32, num::ParseFloatError> {
 
     let fv: f32;
 
-    if fv_str.ends_with("%") {
+    if fv_str.ends_with('%') {
         let mut percentage_string = fv_str.to_string();
         percentage_string.pop();
-        fv = try!(f32::from_str(&percentage_string));
+        fv = f32::from_str(&percentage_string)?;
         return Ok(clamp_css_float(fv / 100.0));
     }
 
-    fv = try!(f32::from_str(fv_str));
+    fv = f32::from_str(fv_str)?;
     return Ok(clamp_css_float(fv));
 }
 
 // int or percentage.
 fn parse_css_int(iv_or_percentage_str: &str) -> Result<u8, ColorParseError> {
-    if iv_or_percentage_str.ends_with("%") {
+    if iv_or_percentage_str.ends_with('%') {
 
         let mut percentage_string = iv_or_percentage_str.to_string();
         percentage_string.pop();
-        let fv = try!(f32::from_str(&percentage_string));
+        let fv = f32::from_str(&percentage_string)?;
         // Seems to be what Chrome does (round vs truncation).
         return Ok(clamp_css_byte_from_float(fv / 100.0 * 255.0));
     }
 
-    let iv = try!(u32::from_str(iv_or_percentage_str));
+    let iv = u32::from_str(iv_or_percentage_str)?;
 
     return Ok(clamp_css_byte(iv));
 }
