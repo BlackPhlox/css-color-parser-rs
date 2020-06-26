@@ -78,7 +78,7 @@ impl error::Error for ColorParseError {
         "Failed to parse color"
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         None
     }
 }
